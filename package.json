@@ -1,0 +1,20 @@
+{
+  "name": "me-and-mech",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Me & Mech — Tamil-first workshop management platform for Tamil Nadu mechanics. Unga Kadai Digital.",
+  "workspaces": [
+    "apps/backend",
+    "packages/shared"
+  ],
+  "scripts": {
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspace=packages/shared && npm run build --workspace=apps/backend",
+    "dev:backend": "npm run dev --workspace=apps/backend"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
