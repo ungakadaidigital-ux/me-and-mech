@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Build shared package
+        run: npm run build --workspace=packages/shared
+      - name: TypeScript check
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        run: npm run test:coverage --workspace=apps/backend
+      - name: Build check (backend)
+        run: npm run build --workspace=apps/backend
+      - name: Security scan (npm audit)
+        run: npm audit --audit-level=high --workspaces || true
+        # `|| true`: npm audit failures shouldn't hard-block CI on
+        # transitive-dependency advisories the team hasn't triaged yet —
+        # PKG-051's gate is "must pass" for the steps above; audit is
+        # visibility, not an automatic blocker. Tighten this once the team
+        # has a process for triaging/accepting individual advisories.
