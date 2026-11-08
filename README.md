@@ -212,7 +212,15 @@ Live-endpoint smoke test once migrated and running:
 curl -X POST http://localhost:3000/api/v1/auth/request-otp -H 'Content-Type: application/json' -d '{"phone":"9840012345"}'
 curl -X POST http://localhost:3000/api/v1/auth/verify-otp -H 'Content-Type: application/json' -d '{"phone":"9840012345","otp":"123456"}'
 ```
+## Part 8 — Testing, Launch & Master Index (PKG-054–060)
 
+- **PKG-054**: `apps/backend/tests/unit/` (6 files), `tests/factories/`, coverage config in
+  `vitest.config.ts`, `npm run test:coverage`, wired into CI. Coverage scope is the 6
+  pure-logic files, not the whole backend. Nothing has been executed yet.
+- **PKG-055–059**: `docs/PKG-055-integration-e2e-testing.md`, `PKG-056-uat-beta.md`,
+  `PKG-057-launch-runbook.md`, `PKG-058-post-launch-monitoring.md`,
+  `PKG-059-engineering-handbook.md`.
+- **PKG-060**: `docs/PKG-060-master-index.md` — all 60 packages with honest status.
 ## Part 7 — Infrastructure, Observability & Production Hardening (PKG-046–053)
 
 All 8 packages MVP-required per the locked spec, not deferred post-launch.
@@ -273,11 +281,7 @@ auto-matching; `google-services.json` (Firebase credential) isn't shipped;
 no physical device testing has been done (can't test hardware from here) —
 all detailed in the mobile README.
 
-## Not yet included (upcoming modules)
-- Part 8 (PKG-054–060): full test suite (beyond the unit/integration
-  tests already in `apps/backend/tests`), UAT/beta framework, launch
-  runbook, post-launch monitoring protocol, documentation package, master
-  dependency index.
+## Not yet included (upcoming modules) 
 - Voice-session audio auto-deletion (24h) is designed but not implemented
   as a running scheduled job — needs a QStash-scheduled call to a cleanup
   endpoint using the Storage API, flagged in `audio-storage.ts`.
