@@ -16,7 +16,7 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - name: Build shared package
-        run: npm run build --workspace=packages/shared
+        run: npm run test:coverage --workspace=apps/backend
       - name: TypeScript check
         run: npm run typecheck
       - name: Lint
