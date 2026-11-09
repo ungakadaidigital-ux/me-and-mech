@@ -1,0 +1,13 @@
+-- 013_reserved_do_not_use.sql
+--
+-- This migration number is intentionally retired and left empty.
+--
+-- Earlier planning drafts assigned 013 to a single "referrals" table.
+-- That design was superseded before any production data existed — the
+-- founder-approved schema is the 3-table design in 021/022/023
+-- (referral_codes / referral_entries / reward_transactions).
+--
+-- The number is kept reserved (rather than reused) so migration-number
+-- references across existing project documentation stay traceable to
+-- what they originally meant, without implying this file ever ran
+-- meaningful DDL. Do not repurpose this number for an unrelated table.
