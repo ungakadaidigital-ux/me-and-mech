@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Me & Mech",
+    "slug": "me-and-mech",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F7F7F7"
+    },
+    "scheme": "meandmech",
+    "android": {
+      "package": "com.ungakadaidigital.meandmech",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FF6B00"
+      },
+      "permissions": ["RECORD_AUDIO", "INTERNET", "ACCESS_NETWORK_STATE"]
+    },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#FF6B00"
+    },
+    "plugins": ["expo-secure-store", "expo-sqlite"],
+    "extra": {
+      "apiBaseUrl": "https://api.meandmech.ungakadaidigital.com",
+      "sentryDsn": "",
+      "posthogApiKey": ""
+    }
+  }
+}
