@@ -1,0 +1,41 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build --workspace=packages/shared
+      - run: npm run build --workspace=apps/backend
+
+      - name: Run database migrations (staging)
+        run: npm run migrate --workspace=apps/backend
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.STAGING_SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy to Railway (staging)
+        run: npx @railway/cli up --service backend --environment staging
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_STAGING_TOKEN }}
+
+      - name: Smoke test — health check
+        run: |
+          sleep 15
+          curl -sf https://staging-api.meandmech.ungakadaidigital.com/health || exit 1
+          curl -sf https://staging-api.meandmech.ungakadaidigital.com/health/db || exit 1
+
+      - name: Trigger EAS internal build (mobile)
+        run: npx eas-cli build --platform android --profile preview --non-interactive
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
