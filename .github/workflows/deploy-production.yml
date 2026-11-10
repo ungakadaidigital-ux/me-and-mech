@@ -1,0 +1,66 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type DEPLOY to confirm a production deployment'
+        required: true
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+    environment: production # GitHub Environment protection rule should ALSO require manual approval — configure this in repo settings, this workflow's own confirm-string check is a second, not the only, guard
+    steps:
+      - name: Verify confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "DEPLOY" ]; then
+            echo "Confirmation string did not match 'DEPLOY' — aborting."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build --workspace=packages/shared
+      - run: npm run build --workspace=apps/backend
+      - run: npm test --workspace=apps/backend
+
+      - name: Tag release
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git tag "prod-$(date +%Y%m%d-%H%M%S)"
+          git push --tags
+
+      - name: Run database migrations (production)
+        run: npm run migrate --workspace=apps/backend
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.PROD_SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy to Railway (production)
+        run: npx @railway/cli up --service backend --environment production
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROD_TOKEN }}
+
+      - name: Smoke test — health check
+        run: |
+          sleep 20
+          curl -sf https://api.meandmech.ungakadaidigital.com/health || exit 1
+          curl -sf https://api.meandmech.ungakadaidigital.com/health/db || exit 1
+
+      - name: Upload source maps to Sentry
+        run: npx @sentry/cli releases files "$GITHUB_SHA" upload-sourcemaps ./apps/backend/dist
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: unga-kadai-digital
+          SENTRY_PROJECT: me-and-mech-backend
+
+# Reminder (per the locked deployment rule): never deploy production
+# manually, and never deploy on a Friday — Tuesday/Wednesday only, so the
+# full team is available if something goes wrong. This workflow enforces
+# "not manual" and "not silent"; it cannot enforce "not Friday" — that's a
+# team-process rule, not something CI can block on the calendar alone.
