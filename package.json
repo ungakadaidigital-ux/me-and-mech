@@ -5,6 +5,7 @@
   "description": "Me & Mech — Tamil-first workshop management platform for Tamil Nadu mechanics. Unga Kadai Digital.",
   "workspaces": [
     "apps/backend",
+    "apps/mobile",
     "packages/shared"
   ],
   "scripts": {
@@ -13,6 +14,11 @@
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspace=packages/shared && npm run build --workspace=apps/backend",
     "dev:backend": "npm run dev --workspace=apps/backend"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0"
   },
   "engines": {
     "node": ">=20.0.0"
