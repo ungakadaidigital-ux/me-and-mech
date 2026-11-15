@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { FakeSupabaseClient } from '../fakes/fake-supabase-client';
 import { createRepositories } from '../../src/db/repository-factory';
 import { CustomerService } from '../../src/modules/customer/customer.service';
@@ -191,3 +191,4 @@ describe('Core module integration — full service flow', () => {
     expect(new Set(invoiceNumbers).size).toBe(3); // no collisions
   });
 });
+vi.mock('../../src/modulespdf/pdf-storage', () => ({ uploadInvoicePdf: async () => 'test.pdf', getSignedInvoicePdfUrl: async () => 'url'}));

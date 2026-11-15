@@ -25,6 +25,6 @@ export async function sendWhatsAppTemplate(
     return { watiMessageId: null, success: false };
   }
 
-  const body = await response.json().catch(() => ({}));
+  const body: any = await response.json().catch(() => ({}));
   return { watiMessageId: body.id ?? null, success: true };
 }

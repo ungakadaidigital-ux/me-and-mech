@@ -46,7 +46,7 @@ export async function extractJobCardFromTranscript(transcript: string): Promise<
     return { serviceItems: [], vehiclePlate: null, customerName: null, total: null, confidence: 0 };
   }
 
-  const body = await response.json();
+  const body: any = await response.json();
   const content = body.choices?.[0]?.message?.content;
 
   try {

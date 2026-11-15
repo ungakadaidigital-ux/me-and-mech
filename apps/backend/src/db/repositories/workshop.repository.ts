@@ -6,7 +6,7 @@ import { encryptField, decryptField } from '../../lib/encryption';
 
 const ENCRYPTED_FIELDS = ['gst_number', 'upi_id'] as const;
 
-function decryptRow<T extends Record<string, any>>(row: T | null): T | null {
+function decryptRow(row: Record<string, any> | null): Record<string, any> | null {
   if (!row) return row;
   const out = { ...row };
   for (const field of ENCRYPTED_FIELDS) {
@@ -23,7 +23,7 @@ function decryptRow<T extends Record<string, any>>(row: T | null): T | null {
   return out;
 }
 
-function encryptPayload<T extends Record<string, any>>(payload: T): T {
+function encryptPayload(payload: Record<string, any>): Record<string, any> {
   const out = { ...payload };
   for (const field of ENCRYPTED_FIELDS) {
     if (out[field]) out[field] = encryptField(out[field]);

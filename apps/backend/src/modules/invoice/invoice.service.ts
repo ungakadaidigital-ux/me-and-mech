@@ -108,7 +108,7 @@ export class InvoiceService {
     try {
       const customer = await this.repos.customers.findById(jobCard.customerId, workshopId);
       const vehicle = await this.repos.vehicles.findById(jobCard.vehicleId, workshopId);
-      const lineItems = await getAdminClient()
+      const lineItems = await this.adminClient
         .from('invoice_line_items')
         .select('*')
         .eq('invoice_id', invoice.id);

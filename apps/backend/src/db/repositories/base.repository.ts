@@ -80,7 +80,7 @@ export abstract class BaseRepository<TRow, TInsert, TUpdate> {
   }
 
   async create(payload: TInsert): Promise<TRow> {
-    const { data, error } = await this.client.from(this.tableName).insert(payload).select().single();
+    const { data, error } = await this.client.from(this.tableName).insert(payload as any).select().single();
     if (error) throw this.wrapError('create', error);
     return rowToCamel<TRow>(data) as TRow;
   }

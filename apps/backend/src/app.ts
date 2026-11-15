@@ -58,8 +58,6 @@ declare global {
 export function createApp() {
   const app = express();
 
-  app.use(Sentry.Handlers.requestHandler());
-  app.use(Sentry.Handlers.tracingHandler());
 
   app.use(correlationId);           // 1
   app.use(pinoHttp({ logger }));    // 2
@@ -95,7 +93,7 @@ export function createApp() {
   app.use('/api/v1', subscriptionRouter);
 
   app.use(notFoundHandler);
-  app.use(Sentry.Handlers.errorHandler());
+  Sentry.setupExpressErrorHandler(app);
   app.use(errorHandler);
 
   return app;

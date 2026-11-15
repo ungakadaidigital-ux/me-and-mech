@@ -143,3 +143,4 @@ export interface VoiceSession {
   engine: 'sarvam_saarika_v2' | 'expo_speech_totext'; // paid vs. trial engine
   createdAt: string;
 }
+export interface InvoiceLineItem { id: string; invoiceId: string; description: string; quantity: number; rate: string; amount?: string }

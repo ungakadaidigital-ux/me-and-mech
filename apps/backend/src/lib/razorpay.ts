@@ -35,5 +35,5 @@ export async function createRazorpayOrder(planType: 'monthly' | 'annual', worksh
     throw new Error(`Razorpay order creation failed: ${response.status}`);
   }
 
-  return response.json();
+  return (await response.json()) as { id: string; amount: number; currency: string };
 }
