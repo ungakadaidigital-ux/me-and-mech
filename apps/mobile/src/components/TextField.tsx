@@ -22,7 +22,7 @@ export function TextField({ label, value, onChangeText, placeholder, keyboardTyp
         {label}
       </TamilText>
       <TextInput
-        style={[styles.input, multiline && styles.multiline, error && styles.inputError]}
+        style={[styles.input, multiline && styles.multiline, error ? styles.inputError : null]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}

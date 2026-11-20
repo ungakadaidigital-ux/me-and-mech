@@ -9,12 +9,12 @@ export async function initPostHog(): Promise<PostHog | null> {
   const apiKey = (Constants.expoConfig?.extra as any)?.posthogApiKey;
   if (!apiKey) return null;
 
-  client = await PostHog.initAsync(apiKey, { host: 'https://app.posthog.com' });
+  client = new PostHog(apiKey, { host: 'https://app.posthog.com' });
   return client;
 }
 
 export function trackEvent(event: string, properties?: Record<string, unknown>) {
-  client?.capture(event, properties);
+  client?.capture(event, properties as any);
 }
 
 export function identifyWorkshop(workshopId: string) {
