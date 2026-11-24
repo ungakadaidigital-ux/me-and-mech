@@ -26,7 +26,6 @@ export function DashboardScreen() {
     getPushToken().then((token) => {
       if (token) registerPushToken.mutate(token);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const pendingCount = getPendingCount();
