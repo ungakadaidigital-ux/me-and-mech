@@ -17,9 +17,9 @@ CREATE TABLE workshops (
   address               TEXT,
   gst_number            VARCHAR(20),        -- optional; CGST/SGST calc deferred post-MVP
   upi_id                TEXT,
-  invoice_prefix        VARCHAR(10)         NOT NULL,
-  subscription_status   subscription_status NOT NULL DEFAULT 'trial',
-  trial_ends_at         TIMESTAMPTZ         GENERATED ALWAYS AS (created_at + INTERVAL '30 days') STORED,
+  invoice_prefix        VARCHAR(10)         NOT N
+  subscription_status   subscription_status NOT NULL DEFAULT 'trial', 
+  trial_ends_at         TIMESTAMPTZ         GENERATED ALWAYS AS  (((created_at AT TIME ZONE 'UTC') + INTERVAL '30 days') AT TIME ZONE 'UTC') STORED
   subscription_ends_at  TIMESTAMPTZ,
   plan_type             plan_type,
   discount_permanent    BOOLEAN             NOT NULL DEFAULT FALSE, -- true at 10+ successful referrals
