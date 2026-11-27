@@ -9,7 +9,7 @@ import { VoiceSessionRepository } from '../modules/voice/voice-session.repositor
 import { PushTokenRepository } from '../modules/engagement/push-token.repository';
 import { InventoryRepository } from './repositories/inventory.repository';
 import { ReportsRepository } from '../modules/reports/reports.repository';
-
+import { getAdminClient } from './admin-client';
 /**
  * Bundles all repositories bound to a single client instance. Route
  * handlers should call `createRepositories(userScopedClient)` for normal
@@ -35,3 +35,12 @@ export function createRepositories(client: SupabaseClient) {
 }
 
 export type Repositories = ReturnType<typeof createRepositories>;
+/**
+ * Service-role repositories — RLS is BYPASSED. Call this only from code that
+ * is explicitly cross-workshop (referral logic, workers) and always scope
+ * queries by a workshop id taken from the verified JWT. Never for plain
+ * per-workshop CRUD.
+ */
+export function createAdminRepositories(): Repositories {
+  return createRepositories(getAdminClient());
+}
