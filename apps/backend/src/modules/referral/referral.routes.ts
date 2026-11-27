@@ -8,6 +8,7 @@ import { rateLimit } from '../../middleware/rate-limit';
 import { asyncHandler } from '../../middleware/error-handler';
 import { RATE_LIMITS } from '@me-and-mech/shared';
 import { ReferralService } from './referral.service';
+import { createAdminRepositories } from '../../db/repository-factory';
 import { RewardWorkerService } from './reward-worker.service';
 
 export const referralRouter = Router();
@@ -22,7 +23,7 @@ referralRouter.get(
   authenticate,
   attachRepositories,
   asyncHandler(async (req, res) => {
-    const service = new ReferralService(req.repos);
+    const service = new ReferralService(req.repos, createAdminRepositories());
     const status = await service.getMyStatus(req.auth!.workshopId);
     res.json({ success: true, data: status });
   }),
@@ -35,7 +36,7 @@ referralRouter.post(
   referralApplyRateLimit, // PKG-052: 3/24h — abuse prevention
   validate(z.object({ code: z.string().min(6) })),
   asyncHandler(async (req, res) => {
-    const service = new ReferralService(req.repos);
+    const service = new ReferralService(req.repos, createAdminRepositories());
     const entry = await service.applyCode(req.auth!.workshopId, req.body.code);
     res.status(201).json({ success: true, data: entry });
   }),
