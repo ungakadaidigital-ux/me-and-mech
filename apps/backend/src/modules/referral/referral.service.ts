@@ -1,6 +1,5 @@
 import type { Repositories } from '../../db/repository-factory';
-import { REFERRAL } from '@me-and-mech/shared';
-import { isValidReferralCode } from '@me-and-mech/shared';
+import { REFERRAL, isValidReferralCode } from '@me-and-mech/shared';
 import { ValidationError, NotFoundError } from '../../lib/errors';
 import { enqueueInternalJob } from '../../lib/qstash';
 import { logger } from '../../lib/logger';
@@ -8,18 +7,35 @@ import { logger } from '../../lib/logger';
 /**
  * PKG-034 — Referral Rewards & Subscription Entitlements. GATED package.
  *
- * This service covers code application (referee side) and success
- * detection. Reward crediting itself lives in reward-worker.service.ts,
- * invoked asynchronously via QStash — never called synchronously from
- * here, so a slow/failed reward computation can never block a job card
- * creation request.
+ * TRUST BOUNDARY (fixed after the first real-database RLS test, migration 033):
+ *
+ *  - `userRepos`  → the caller's own token. RLS applies. Used ONLY to read
+ *                   data that belongs to the caller (their own code, their own
+ *                   successful referrals).
+ *  - `adminRepos` → service role, RLS bypassed. Required because referral
+ *                   logic is inherently cross-workshop: a referee must look up
+ *                   ANOTHER workshop's code, and referral_entries has no client
+ *                   INSERT/UPDATE and only a referrer-side SELECT policy.
+ *
+ * Because adminRepos bypasses RLS, every admin call below is explicitly
+ * scoped by a workshop id that comes from the verified JWT (never from the
+ * request body), and nothing from another workshop is returned to the caller
+ * beyond what the caller needs.
+ *
+ * Reward crediting lives in reward-worker.service.ts, invoked asynchronously
+ * via QStash — never synchronously from here, so a slow/failed reward
+ * computation can never block a job card creation request.
  */
 export class ReferralService {
-  constructor(private readonly repos: Repositories) {}
+  constructor(
+    private readonly userRepos: Repositories,
+    private readonly adminRepos: Repositories,
+  ) {}
 
+  /** Caller's own referral code and their own successful-referral count. */
   async getMyStatus(workshopId: string) {
-    const code = await this.repos.referralCodes.findByWorkshop(workshopId);
-    const successCount = await this.repos.referralEntries.countSuccessfulByReferrer(workshopId);
+    const code = await this.userRepos.referralCodes.findByWorkshop(workshopId);
+    const successCount = await this.userRepos.referralEntries.countSuccessfulByReferrer(workshopId);
     return { code: code?.code ?? null, successfulReferrals: successCount };
   }
 
@@ -35,7 +51,8 @@ export class ReferralService {
     }
     const code = rawCode.trim().toUpperCase();
 
-    const referralCode = await this.repos.referralCodes.findActiveByCode(code);
+    // Cross-workshop lookup: only the service role can see another workshop's code.
+    const referralCode = await this.adminRepos.referralCodes.findActiveByCode(code);
     if (!referralCode) {
       throw new NotFoundError('Referral code');
     }
@@ -43,11 +60,16 @@ export class ReferralService {
       throw new ValidationError('Cannot apply your own referral code');
     }
 
-    return this.repos.referralEntries.create({
+    // The DB UNIQUE constraint on referee_workshop_id enforces "referred once ever".
+    const entry = await this.adminRepos.referralEntries.create({
       referralCodeId: referralCode.id,
       referrerWorkshopId: referralCode.workshopId,
       refereeWorkshopId,
     });
+
+    // Return only what the referee needs. The full row contains the
+    // referrer's workshop id, which must not be revealed to the referee.
+    return { id: entry.id, status: entry.status, expiresAt: entry.expiresAt };
   }
 
   /**
@@ -56,17 +78,21 @@ export class ReferralService {
    * exists, ≥3 job cards created since the entry's created_at, still
    * within the 7-day window. On success, enqueues the reward worker —
    * never computes/applies the reward inline here.
+   *
+   * Runs on adminRepos: the referee has no SELECT policy on referral_entries
+   * (only the referrer does) and no UPDATE right, so under the user's token
+   * this check silently never fired.
    */
   async checkAndMarkSuccess(refereeWorkshopId: string): Promise<void> {
     try {
-      const entry = await this.repos.referralEntries.findPendingByReferee(refereeWorkshopId);
+      const entry = await this.adminRepos.referralEntries.findPendingByReferee(refereeWorkshopId);
       if (!entry) return;
       if (new Date(entry.expiresAt) < new Date()) return; // pg_cron sweep (020) will flip this to expired
 
-      const jobCount = await this.repos.jobCards.countSince(refereeWorkshopId, entry.createdAt);
+      const jobCount = await this.adminRepos.jobCards.countSince(refereeWorkshopId, entry.createdAt);
       if (jobCount < REFERRAL.successJobCardThreshold) return;
 
-      const updated = await this.repos.referralEntries.markSuccess(entry.id, jobCount);
+      const updated = await this.adminRepos.referralEntries.markSuccess(entry.id, jobCount);
 
       await enqueueInternalJob(
         '/api/v1/internal/referral-reward-worker',
