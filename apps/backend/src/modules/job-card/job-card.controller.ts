@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { JobCardService } from './job-card.service';
 import { ReferralService } from '../referral/referral.service';
+import { createAdminRepositories } from '../../db/repository-factory';
 
 export async function listJobCards(req: Request, res: Response) {
   const service = new JobCardService(req.repos);
@@ -23,7 +24,7 @@ export async function createJobCard(req: Request, res: Response) {
   // Best-effort, fire-and-forget-but-awaited (not blocking the response
   // shape) referral success check — see referral.service.ts for why this
   // is deliberately non-throwing.
-  new ReferralService(req.repos).checkAndMarkSuccess(req.auth!.workshopId).catch(() => {});
+    new ReferralService(req.repos, createAdminRepositories()).checkAndMarkSuccess(req.auth!.workshopId).catch(() => {});
 
   res.status(201).json({ success: true, data: jobCard });
 }
