@@ -12,9 +12,11 @@ import { generateInvoicePdf } from '../src/modules/pdf/invoice-pdf';
     'க்ஷேத்ரா ஏர் ஃபில்டர்',
     'கொடுத்த முன்பணம் கழிவு',
     'சங்கிலி எண்ணெய் / chain lube',
+    'முன்பக்க பிரேக் பேட் மற்றும் பின்பக்க பிரேக் ஷூ மாற்றம், சக்கர பேரிங் கிரீஸ் மற்றும் செயின் செட் சரிசெய்தல் வேலை',
   ];
+  
 
-  const lineItems = Array.from({ length: 24 }, (_, i) => ({
+  const lineItems = Array.from({ length: 45 }, (_, i) => ({
     description: `${i + 1}. ${words[i % words.length]}`,
     quantity: 1 + (i % 3),
     rate: '350.00',
